@@ -1,6 +1,7 @@
 import random
 
 from celery import Celery
+from fastapi import Depends
 from sqlalchemy import select, func, update
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -14,10 +15,9 @@ celery = Celery(
 
 
 def fill_truck_table(truck: TruckSchema, engine: celery_engine):
-    # with Session(engine) as session:
-        query_truck_tst = select(TruckSchema)
-        session = sessionmaker(engine)
-        ids = engine.execute(query_truck_tst)
+    with Session(engine) as session:
+        stmt = select(truck.id)
+        ids = session.execute(stmt)
 
         for i in [current_id for current_id in ids.scalars().all()]:
             query = select(func.count("*")).select_from(LocationSchema)
@@ -38,9 +38,10 @@ def run_task():
 celery.conf.beat_schedule = {
     "run_update_task_every_1_minute": {
         "task": "tasks.run_task",
-        "schedule": 30.0,
+        "schedule": 180.0,
 
     }
 }
 
-run_task()
+
+
