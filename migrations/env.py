@@ -1,19 +1,16 @@
-from src.config import DB_DRIVER, DB_CONNECTOR, DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
-from src.database import Base
-
-import os
-import sys
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-sys.path.append(os.path.join(sys.path[0], 'source'))
+from src.config import DB_DRIVER, DB_CONNECTOR, DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
+from src.search_nearest_trucks.schemas import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
 section = config.config_ini_section
 config.set_section_option(section, 'DB_DRIVER', DB_DRIVER)
 config.set_section_option(section, 'DB_CONNECTOR', DB_CONNECTOR)
@@ -22,7 +19,6 @@ config.set_section_option(section, 'DB_PASS', DB_PASS)
 config.set_section_option(section, 'DB_HOST', DB_HOST)
 config.set_section_option(section, 'DB_PORT', DB_PORT)
 config.set_section_option(section, 'DB_NAME', DB_NAME)
-
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:

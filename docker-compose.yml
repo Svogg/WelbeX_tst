@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  database:
+    container_name: database
+    image: postgres:latest
+    volumes:
+      - database_volume:/var/lib/postgresql/data/
+    env_file:
+      - .dbenv
+    environment:
+      DATABASE_HOSTNAME: "postgres"
+      POSTGRES_DB: "welbex_tst"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: pg_isready -U postgres
+
+  redis:
+    container_name: redis
+    image: redis
+    command: redis-server
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+
+
+  backend:
+    container_name: backend
+    build: .
+    command: bash -c "alembic upgrade head && cd src && python3.11 db_fill.py && cd .. && uvicorn start:app --host 0.0.0.0 --port 8000"
+    ports:
+      - '8000:8000'
+    depends_on:
+      database:
+        condition: "service_healthy"
+      redis:
+        condition: "service_healthy"
+    env_file:
+      - .dbenv
+    environment:
+      PYTHONPATH: "/WelbeX_tst/src/"
+
+  celery-worker:
+    container_name: celery-worker
+    build: .
+    volumes:
+      - ./src:/WelbeX_tst/src
+    depends_on:
+      - redis
+      - backend
+    command:  celery -A tasks.celery worker --loglevel=info
+    env_file:
+      - .dbenv
+    environment:
+      CELERY_BROKER: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      PYTHONPATH: "/WelbeX_tst/src/"
+
+  celery-beat:
+    container_name: celery-beat
+    build: .
+    volumes:
+      - ./src:/WelbeX_tst/src
+    depends_on:
+      - celery-worker
+    command: celery -A tasks.celery beat --loglevel=INFO
+    env_file:
+      - .dbenv
+    environment:
+      CELERY_BROKER: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      PYTHONPATH: "/WelbeX_tst/src/"
+
+  celery-flower:
+    container_name: celery-flower
+    build: .
+    volumes:
+      - ./src:/WelbeX_tst/src
+    depends_on:
+      - celery-beat
+    ports:
+      - '5555:5555'
+    command: celery -A tasks.celery flower --loglevel=INFO
+    env_file:
+      - .dbenv
+    environment:
+      CELERY_BROKER: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      PYTHONPATH: "/WelbeX_tst/src/"
+
+volumes:
+  database_volume:
+  celery_volume:
