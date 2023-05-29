@@ -1,8 +1,0 @@
-DB_DRIVER=postgresql
-CELERY_DB_CONNECTOR=psycopg2
-DB_CONNECTOR=asyncpg
-DB_USER=postgres
-DB_PASS=root
-DB_HOST=database
-DB_PORT=5432
-DB_NAME=welbex_tst
