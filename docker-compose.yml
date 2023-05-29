@@ -10,7 +10,7 @@ services:
       - .dbenv
     environment:
       DATABASE_HOSTNAME: "postgres"
-      POSTGRES_DB: "welbex_tst"
+      POSTGRES_DB: "fastapi_geopy"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "root"
     ports:
@@ -42,13 +42,13 @@ services:
     env_file:
       - .dbenv
     environment:
-      PYTHONPATH: "/WelbeX_tst/src/"
+      PYTHONPATH: "/fastapi_geopy/src/"
 
   celery-worker:
     container_name: celery-worker
     build: .
     volumes:
-      - ./src:/WelbeX_tst/src
+      - ./src:/fastapi_geopy/src
     depends_on:
       - redis
       - backend
@@ -58,13 +58,13 @@ services:
     environment:
       CELERY_BROKER: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
-      PYTHONPATH: "/WelbeX_tst/src/"
+      PYTHONPATH: "/fastapi_geopy/src/"
 
   celery-beat:
     container_name: celery-beat
     build: .
     volumes:
-      - ./src:/WelbeX_tst/src
+      - ./src:/fastapi_geopy/src
     depends_on:
       - celery-worker
     command: celery -A tasks.celery beat --loglevel=INFO
@@ -73,13 +73,13 @@ services:
     environment:
       CELERY_BROKER: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
-      PYTHONPATH: "/WelbeX_tst/src/"
+      PYTHONPATH: "/fastapi_geopy/src/"
 
   celery-flower:
     container_name: celery-flower
     build: .
     volumes:
-      - ./src:/WelbeX_tst/src
+      - ./src:/fastapi_geopy/src
     depends_on:
       - celery-beat
     ports:
@@ -90,7 +90,7 @@ services:
     environment:
       CELERY_BROKER: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
-      PYTHONPATH: "/WelbeX_tst/src/"
+      PYTHONPATH: "/fastapi_geopy/src/"
 
 volumes:
   database_volume:
